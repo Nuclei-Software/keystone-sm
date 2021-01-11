@@ -294,14 +294,14 @@ static int is_create_args_valid(struct keystone_sbi_create* args)
 {
   uintptr_t epm_start, epm_end;
 
-  /* printm("[create args info]: \r\n\tepm_addr: %llx\r\n\tepmsize: %llx\r\n\tutm_addr: %llx\r\n\tutmsize: %llx\r\n\truntime_addr: %llx\r\n\tuser_addr: %llx\r\n\tfree_addr: %llx\r\n", */
-  /*        args->epm_region.paddr, */
-  /*        args->epm_region.size, */
-  /*        args->utm_region.paddr, */
-  /*        args->utm_region.size, */
-  /*        args->runtime_paddr, */
-  /*        args->user_paddr, */
-  /*        args->free_paddr); */
+  sbi_printf("[create args info]: \r\n\tepm_addr: %llx\r\n\tepmsize: %llx\r\n\tutm_addr: %llx\r\n\tutmsize: %llx\r\n\truntime_addr: %llx\r\n\tuser_addr: %llx\r\n\tfree_addr: %llx\r\n",
+         args->epm_region.paddr,
+         args->epm_region.size,
+         args->utm_region.paddr,
+         args->utm_region.size,
+         args->runtime_paddr,
+         args->user_paddr,
+         args->free_paddr);
 
   // check if physical addresses are valid
   if (args->epm_region.size <= 0)
@@ -365,6 +365,7 @@ enclave_ret_code create_enclave(struct keystone_sbi_create create_args)
   enclave_ret_code ret;
   int region, shared_region;
 
+  sbi_printf("create_enclave: check runtime param\n");
   /* Runtime parameters */
   if(!is_create_args_valid(&create_args))
     return ENCLAVE_ILLEGAL_ARGUMENT;
@@ -378,11 +379,14 @@ enclave_ret_code create_enclave(struct keystone_sbi_create create_args)
   pa_params.user_base = create_args.user_paddr;
   pa_params.free_base = create_args.free_paddr;
 
+  sbi_printf("create_enclave: allocate eid\n");
 
   // allocate eid
   ret = ENCLAVE_NO_FREE_RESOURCE;
   if(encl_alloc_eid(&eid) != ENCLAVE_SUCCESS)
     goto error;
+
+  sbi_printf("create_enclave: setup PMP regions\n");
 
   // create a PMP region bound to the enclave
   ret = ENCLAVE_PMP_FAILURE;
@@ -396,6 +400,8 @@ enclave_ret_code create_enclave(struct keystone_sbi_create create_args)
   // set pmp registers for private region (not shared)
   if(pmp_set_global(region, PMP_NO_PERM))
     goto free_shared_region;
+
+  sbi_printf("create_enclave: cleanup memory regions\n");
 
   // cleanup some memory regions for sanity See issue #38
   clean_enclave_memory(utbase, utsize);
@@ -414,14 +420,20 @@ enclave_ret_code create_enclave(struct keystone_sbi_create create_args)
   enclaves[eid].params = params;
   enclaves[eid].pa_params = pa_params;
 
+  sbi_printf("create_enclave: Init enclave state\n");
+
   /* Init enclave state (regs etc) */
   clean_state(&enclaves[eid].threads[0]);
+
+  sbi_printf("create_enclave: platform_create_enclave\n");
 
   /* Platform create happens as the last thing before hashing/etc since
      it may modify the enclave struct */
   ret = platform_create_enclave(&enclaves[eid]);
   if(ret != ENCLAVE_SUCCESS)
     goto unset_region;
+
+  sbi_printf("create_enclave: validate_and_hash_enclave\n");
 
   /* Validate memory, prepare hash and signature for attestation */
   spin_lock(&encl_lock); // FIXME This should error for second enter.
@@ -541,6 +553,7 @@ enclave_ret_code run_enclave(struct sbi_trap_regs *regs, enclave_id eid)
   if(!runable) {
     return ENCLAVE_NOT_FRESH;
   }
+  sbi_printf("run_enclave: context_switch_to_enclave\n");
 
   // Enclave is OK to run, context switch to it
   return context_switch_to_enclave(regs, eid, 1);

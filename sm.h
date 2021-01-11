@@ -10,7 +10,7 @@
 #include "sm-sbi.h"
 #include <sbi/riscv_encoding.h>
 
-#define SMM_BASE  0x80000000
+#define SMM_BASE  0xA0000000
 #define SMM_SIZE  0x200000
 
 #define SBI_SM_CREATE_ENCLAVE    101

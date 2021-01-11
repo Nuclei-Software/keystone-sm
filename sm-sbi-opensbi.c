@@ -19,6 +19,8 @@ static int sbi_ecall_keystone_enclave_handler(unsigned long extid, unsigned long
                      struct sbi_trap_info *out_trap)
 {
   uintptr_t retval;
+  sbi_printf("[SM ECALL KEYSTONE]: func %x\n", funcid);
+
   switch(funcid){
   case SBI_SM_CREATE_ENCLAVE:
     retval = mcall_sm_create_enclave(args[0]);

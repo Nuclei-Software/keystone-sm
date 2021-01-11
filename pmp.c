@@ -15,6 +15,7 @@
 #include <sbi/riscv_asm.h>
 #include <sbi/riscv_locks.h>
 #include <sbi/riscv_atomic.h>
+#include <sbi/sbi_console.h>
 
 /* PMP global spin locks */
 static spinlock_t pmp_lock = SPIN_LOCK_INITIALIZER;
@@ -257,10 +258,10 @@ int pmp_set_keystone(int region_idx, uint8_t perm)
 
   pmpaddr = region_pmpaddr_val(region_idx);
 
-  //sbi_printf("pmp_set() [hart %d]: reg[%d], mode[%s], range[0x%lx-0x%lx], perm[0x%x]\r\n",
-  //       current_hartid(), reg_idx, (region_is_tor(region_idx) ? "TOR":"NAPOT"),
-  //       region_get_addr(region_idx), region_get_addr(region_idx) + region_get_size(region_idx), perm);
-  //sbi_printf("  pmp[%d] = pmpaddr: 0x%lx, pmpcfg: 0x%lx\r\n", reg_idx, pmpaddr, pmpcfg);
+  sbi_printf("pmp_set() [hart %d]: reg[%d], mode[%s], range[0x%lx-0x%lx], perm[0x%x]\r\n",
+        current_hartid(), reg_idx, (region_is_tor(region_idx) ? "TOR":"NAPOT"),
+        region_get_addr(region_idx), region_get_addr(region_idx) + region_get_size(region_idx), perm);
+  sbi_printf("  pmp[%d] = pmpaddr: 0x%lx, pmpcfg: 0x%lx\r\n", reg_idx, pmpaddr, pmpcfg);
 
   int n=reg_idx;
 
@@ -275,6 +276,7 @@ int pmp_set_keystone(int region_idx, uint8_t perm)
   /* TOR decoding with 2 registers */
   if(region_needs_two_entries(region_idx))
   {
+    sbi_printf("region_needs_two_entries for region %d\n", region_idx);
     n--;
     pmpcfg = 0;
     pmpaddr = region_get_addr(region_idx) >> 2;
