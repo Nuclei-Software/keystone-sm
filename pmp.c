@@ -258,10 +258,10 @@ int pmp_set_keystone(int region_idx, uint8_t perm)
 
   pmpaddr = region_pmpaddr_val(region_idx);
 
-  sbi_printf("pmp_set() [hart %d]: reg[%d], mode[%s], range[0x%lx-0x%lx], perm[0x%x]\r\n",
-        current_hartid(), reg_idx, (region_is_tor(region_idx) ? "TOR":"NAPOT"),
-        region_get_addr(region_idx), region_get_addr(region_idx) + region_get_size(region_idx), perm);
-  sbi_printf("  pmp[%d] = pmpaddr: 0x%lx, pmpcfg: 0x%lx\r\n", reg_idx, pmpaddr, pmpcfg);
+  // sbi_printf("pmp_set() [hart %d]: reg[%d], mode[%s], range[0x%lx-0x%lx], perm[0x%x]\r\n",
+  //       current_hartid(), reg_idx, (region_is_tor(region_idx) ? "TOR":"NAPOT"),
+  //       region_get_addr(region_idx), region_get_addr(region_idx) + region_get_size(region_idx), perm);
+  // sbi_printf("  pmp[%d] = pmpaddr: 0x%lx, pmpcfg: 0x%lx\r\n", reg_idx, pmpaddr, pmpcfg);
 
   int n=reg_idx;
 
